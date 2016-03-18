@@ -143,6 +143,7 @@ public class MainActivity extends Activity implements SensorEventListener,
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
+        compassView.setCurrentLocation(location);
         // used to update location info on screen
         updateLocation(location);
         geomagneticField = new GeomagneticField(
