@@ -18,10 +18,19 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.GoogleMap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity implements SensorEventListener,
         LocationListener {
@@ -47,12 +56,17 @@ public class MainActivity extends Activity implements SensorEventListener,
     // sensor gravity
     private Sensor sensorGravity;
     private Sensor sensorMagnetic;
-    private LocationManager locationManager;
     private Location currentLocation;
     private GeomagneticField geomagneticField;
     private double bearing = 0;
     private TextView textDirection, textLat, textLong;
     private CompassView compassView;
+    private final String TAG = getClass().getSimpleName();
+    private GoogleMap mMap;
+    private String[] places;
+    private LocationManager locationManager;
+    private Location loc;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +78,12 @@ public class MainActivity extends Activity implements SensorEventListener,
         compassView = (CompassView) findViewById(R.id.compass);
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        APIRequest();
     }
 
     @Override
@@ -262,5 +282,26 @@ public class MainActivity extends Activity implements SensorEventListener,
             // manage fact that compass data are unreliable ...
             // toast ? display on screen ?
         }
+    }
+
+    private void APIRequest() {
+        new HttpTask("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=45.5017,-75.7755&radius=10000&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
+
+            @Override
+            protected void onPostExecute(JSONObject json) {
+                super.onPostExecute(json);
+                try {
+                    if (json != null) {
+                        JSONArray results = json.getJSONArray("results");
+                        Log.d("JSONObject", json.toString());
+                        Log.d("JSONArray", results.toString());
+                    }
+
+                } catch (JSONException e) {
+
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
     }
 }
