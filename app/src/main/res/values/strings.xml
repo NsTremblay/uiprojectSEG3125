@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">CompassApp</string>
     <string name="action_settings">Settings</string>
+    <string name="search_parameters_category_title">Search Parameters</string>
+    <string name="max_search_distance_title">Maximum Search Distance</string>
+    <string name="max_number_results">Maximum Number of Results</string>
 </resources>

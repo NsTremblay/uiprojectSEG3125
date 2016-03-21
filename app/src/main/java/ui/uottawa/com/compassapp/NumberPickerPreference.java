@@ -10,6 +10,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
@@ -17,17 +18,18 @@ import android.widget.NumberPicker;
 public class NumberPickerPreference extends DialogPreference {
 
     private int year;
-    private NumberPicker semPick;
+    private NumberPicker numberPicker;
     private int DEFAULT_VALUE;
 
     public NumberPickerPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         DEFAULT_VALUE = 10;
-
         setDialogLayoutResource(R.layout.number_pref);
         setPositiveButtonText(android.R.string.ok);
         setNegativeButtonText(android.R.string.cancel);
+        //gives the string resource id
+        Log.d("attrstostring", attrs.getAttributeValue("http://schemas.android.com/apk/res/android","title"));
 
         setDialogIcon(null);
     }
@@ -36,7 +38,7 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onDialogClosed(boolean positiveResult) {
 
         if (positiveResult) {
-            persistInt(semPick.getValue());
+            persistInt(numberPicker.getValue());
         }
     }
 
@@ -67,13 +69,13 @@ public class NumberPickerPreference extends DialogPreference {
                 (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.number_pref, null);
 
-        semPick = (NumberPicker) view.findViewById(R.id.number_picker);
+        numberPicker = (NumberPicker) view.findViewById(R.id.number_picker);
 
         // Initialize state
-        semPick.setMaxValue(max);
-        semPick.setMinValue(min);
-        semPick.setValue(this.getPersistedInt(DEFAULT_VALUE));
-        semPick.setWrapSelectorWheel(false);
+        numberPicker.setMaxValue(max);
+        numberPicker.setMinValue(min);
+        numberPicker.setValue(this.getPersistedInt(DEFAULT_VALUE));
+        numberPicker.setWrapSelectorWheel(false);
 
         return view;
     }
@@ -150,6 +152,6 @@ public class NumberPickerPreference extends DialogPreference {
         super.onRestoreInstanceState(myState.getSuperState());
 
         // Set this Preference's widget to reflect the restored state
-        semPick.setValue(myState.value);
+        numberPicker.setValue(myState.value);
     }
 }

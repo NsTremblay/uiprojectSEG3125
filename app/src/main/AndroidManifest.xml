@@ -14,14 +14,18 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".SettingsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="Settings"
+            android:theme="@style/AppTheme" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo"/>

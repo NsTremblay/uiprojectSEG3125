@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <ui.uottawa.com.compassapp.NumberPickerPreference
-        android:defaultValue="0"
-        android:inputType="number"
-        android:key="interval_time"
-        android:title="test" />
+    <PreferenceCategory
+        android:key="pref_key_storage_settings"
+        android:title="@string/search_parameters_category_title">
+        <ui.uottawa.com.compassapp.NumberPickerPreference
+            android:defaultValue="0"
+            android:key="max_search_distance"
+            android:title="@string/max_search_distance_title" />
+        <ui.uottawa.com.compassapp.NumberPickerPreference
+            android:defaultValue="0"
+            android:key="max_number_results"
+            android:title="@string/max_number_results" />
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -34,7 +34,7 @@ public class CompassView extends View {
     private float bearing; // rotation angle to North
 
     private Place [] coffeeShops;
-
+    private helperAPIRequest APIRequest = helperAPIRequest.getInstance();
 
     private Location currentLocation;
     public CompassView(Context context) {

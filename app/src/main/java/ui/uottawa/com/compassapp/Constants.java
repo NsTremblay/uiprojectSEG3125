@@ -5,6 +5,9 @@ package ui.uottawa.com.compassapp;
  * For uiprojectSEG3125
  */
 public class Constants {
-    public static final String SHPREF_INTERVAL_HOURS = "interval_hours";
-    public static final String SHPREF_INTERVAL_MINS = "interval_mins";
+    public static final String SHPREF_MAX_SEARCH_DISTANCE = "max_search_distance";
+    public static final String SHPREF_MAX_NUMBER_RESULTS = "max_number_results";
+    public static final String SHPREF_MIN_RATING = "min_rating";
+    public static final String SHPREF_LOCATION_LATITUDE = "loc_latitude";
+    public static final String SHPREF_LOCATION_LONGITUDE = "loc_longitude";
 }

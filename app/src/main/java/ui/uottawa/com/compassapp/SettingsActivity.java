@@ -94,12 +94,12 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
             return;
         }
         SharedPreferences sharedPrefs = this.getSharedPreferences(PREFS_NAME, 0);
-        if (key.equals("interval_time") || key.equals(Constants.SHPREF_INTERVAL_HOURS) || key.equals(Constants.SHPREF_INTERVAL_MINS)) {
+       /* if (key.equals("interval_time") || key.equals(Constants.SHPREF_INTERVAL_HOURS) || key.equals(Constants.SHPREF_INTERVAL_MINS)) {
 
 
             findPreference("interval_time").setSummary("HARD CODED FOR NOW");
 
-        }
+        }*/
 
     }
 
