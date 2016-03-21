@@ -292,7 +292,7 @@ public class MainActivity extends Activity implements SensorEventListener,
             for (int i = 0; 0 < coffeeshops.length(); i++) {
                 shops[i] = Place.jsonToPontoReferencia(coffeeshops.getJSONObject(i));
             }
-            compassView.addCoffee(shops);
+
         }catch (JSONException je)
         {
             Log.d("Trying to get json obj",je.toString());
@@ -309,15 +309,19 @@ public class MainActivity extends Activity implements SensorEventListener,
      */
 
     private void showCoffeeShops(String filterInclude, String filterExclude){
+
         //get the location of the device and enter into the query
         String latitude = Double.toString(compassView.getCurrentLocation().getLatitude());
         String longitude = Double.toString(compassView.getCurrentLocation().getLongitude());
+
+        //lets try to add some filters
+
 
         String distance = Integer.toString(1000);
         
         // TODO: 16-03-20 Check location in a more reliable way
         if(latitude!=null){
-            new HttpTask("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=45.5017,-75.7755&radius=10000&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
+            new HttpTask("https://maps.googleapis.com/maps/api/place/textsearch/json?location="+latitude+","+longitude+"&radius="+distance+"&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
 
                 @Override
                 protected void onPostExecute(JSONObject json) {
@@ -325,7 +329,11 @@ public class MainActivity extends Activity implements SensorEventListener,
                     try {
                         if (json != null) {
                             JSONArray results = json.getJSONArray("results");
+
+                            //remove the coffeeshops that are not in the list
+
                             loadResults(results);
+
                             Log.d("JSONObject", json.toString());
                             Log.d("JSONArray", results.toString());
                         }
@@ -336,7 +344,6 @@ public class MainActivity extends Activity implements SensorEventListener,
                     }
                 }
             }.execute();
-            
         }else{}
 
         
