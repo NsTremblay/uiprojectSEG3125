@@ -148,7 +148,7 @@ public class CompassView extends View {
                 }
             }else{
                 //call the function to get the locations
-                getPlaces();
+                //getPlaces();
             }
             Location dest = new Location("dest");
 
