@@ -67,6 +67,7 @@ public class MainActivity extends Activity implements SensorEventListener,
     private LocationManager locationManager;
     private Location loc;
     private GoogleApiClient mGoogleApiClient;
+    private Place [] shops;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -284,7 +285,65 @@ public class MainActivity extends Activity implements SensorEventListener,
         }
     }
 
+
+    private void loadResults(JSONArray coffeeshops){
+        try {
+            shops = new Place[coffeeshops.length()];
+            for (int i = 0; 0 < coffeeshops.length(); i++) {
+                shops[i] = Place.jsonToPontoReferencia(coffeeshops.getJSONObject(i));
+            }
+            compassView.addCoffee(shops);
+        }catch (JSONException je)
+        {
+            Log.d("Trying to get json obj",je.toString());
+        }
+    }
+
+    /**
+     *
+     * @param filterInclude
+     * @param filterExclude
+     *
+     * This function will get the location of all of the coffee shops around the user
+     *
+     */
+
+    private void showCoffeeShops(String filterInclude, String filterExclude){
+        //get the location of the device and enter into the query
+        String latitude = Double.toString(compassView.getCurrentLocation().getLatitude());
+        String longitude = Double.toString(compassView.getCurrentLocation().getLongitude());
+
+        String distance = Integer.toString(1000);
+        
+        // TODO: 16-03-20 Check location in a more reliable way
+        if(latitude!=null){
+            new HttpTask("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=45.5017,-75.7755&radius=10000&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
+
+                @Override
+                protected void onPostExecute(JSONObject json) {
+                    super.onPostExecute(json);
+                    try {
+                        if (json != null) {
+                            JSONArray results = json.getJSONArray("results");
+                            loadResults(results);
+                            Log.d("JSONObject", json.toString());
+                            Log.d("JSONArray", results.toString());
+                        }
+
+                    } catch (JSONException e) {
+
+                        e.printStackTrace();
+                    }
+                }
+            }.execute();
+            
+        }else{}
+
+        
+    }
     private void APIRequest() {
+
+
         new HttpTask("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=45.5017,-75.7755&radius=10000&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
 
             @Override

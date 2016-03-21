@@ -35,3 +35,8 @@ build
 *.ipr
 *~
 *.swp
+
+app/google-services.json
+app/src/androidTest/google-services.json
+app/src/google-services.json
+app/src/main/google-services.json

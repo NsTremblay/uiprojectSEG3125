@@ -29,6 +29,7 @@ public class CompassView extends View {
     private Bitmap bitmap;
     private float bearing; // rotation angle to North
 
+    private Place [] coffeeShops;
 
 
     private Location currentLocation;
@@ -125,12 +126,22 @@ public class CompassView extends View {
         Log.d("Coordinateb:", String.valueOf(cyCompass + (radiusCompass * (float) y)));
         float bearingLoc;
         if(currentLocation!=null){
-            Location dest = new Location("Dest");
-            dest.setLatitude(48.48);
-            dest.setLongitude(-75.77);
+            //loop through all of the returned coffeeshops
+            for (int i = 0; i<10; i++){
+                Location dest = new Location(coffeeShops[i].getName());
+                dest.setLatitude(coffeeShops[i].getLatitude());
+                dest.setLongitude(coffeeShops[i].getLongitude());
 
-            bearingLoc = currentLocation.bearingTo(dest);
-            Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+                bearingLoc = currentLocation.bearingTo(dest);
+                Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+
+                double angleRadians2 = Math.toRadians(bearingLoc)+Math.toRadians(rotation-90);
+
+                double x2 = Math.cos(angleRadians2);
+                double y2 = Math.sin(angleRadians2);
+                canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x2), cyCompass + (radiusCompass * (float) y2), paint);
+            }
+
         }else{
             Location dest = new Location("Dest");
             dest.setLatitude(48.48);
@@ -143,6 +154,10 @@ public class CompassView extends View {
             Log.d("bearingLoc2:", String.valueOf(bearingLoc));
         }
 
+        Location dest = new Location("dest");
+
+        bearingLoc = currentLocation.bearingTo(dest);
+
         double angleRadians2 = Math.toRadians(bearingLoc)+Math.toRadians(rotation-90);
 
         double x2 = Math.cos(angleRadians2);
@@ -152,5 +167,13 @@ public class CompassView extends View {
     }
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
+    }
+
+    public Location getCurrentLocation(){
+        return this.currentLocation;
+    }
+
+    public void addCoffee(Place [] coffeeShops){
+        this.coffeeShops = coffeeShops;
     }
 }
