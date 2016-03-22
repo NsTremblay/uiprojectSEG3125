@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Location currentLocation;
     private GeomagneticField geomagneticField;
     private double bearing = 0;
-    private TextView textDirection, textLat, textLong;
     private CompassView compassView;
     private final String TAG = getClass().getSimpleName();
     private GoogleMap mMap;
@@ -75,9 +74,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textLat = (TextView) findViewById(R.id.latitude);
-        textLong = (TextView) findViewById(R.id.longitude);
-        textDirection = (TextView) findViewById(R.id.text);
+
         compassView = (CompassView) findViewById(R.id.compass);
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -178,16 +175,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void updateLocation(Location location) {
         if (FIXED.equals(location.getProvider())) {
-            textLat.setText(NA);
-            textLong.setText(NA);
+
         }
 
         // better => make this creation outside method
         DecimalFormatSymbols dfs = new DecimalFormatSymbols();
         dfs.setDecimalSeparator('.');
         NumberFormat formatter = new DecimalFormat("#0.00", dfs);
-        textLat.setText("Lat : " + formatter.format(location.getLatitude()));
-        textLong.setText("Long : " + formatter.format(location.getLongitude()));
+
     }
 
     @Override
@@ -274,8 +269,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (range == 13 || range == 14)
             dirTxt = "NW";
 
-        textDirection.setText("" + ((int) bearing) + ((char) 176) + " "
-                + dirTxt); // char 176 ) = degrees ...
+
     }
 
     @Override
@@ -341,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //lets try to add some filters
 
 
-        String distance = Integer.toString(1000);
+        String distance = Integer.toString(10000);
         
         // TODO: 16-03-20 Check location in a more reliable way
         if(latitude!=null){

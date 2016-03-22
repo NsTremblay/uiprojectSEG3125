@@ -50,7 +50,7 @@ public class CompassView extends View {
     private void initialize() {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
-        paint.setColor(Color.BLACK);
+        paint.setColor(Color.WHITE);
         paint.setTextSize(30);
 
         firstDraw = true;
@@ -87,35 +87,12 @@ public class CompassView extends View {
         canvas.drawCircle(cxCompass, cyCompass, radiusCompass, paint);
 
 
-        int bitmapWidth = bitmap.getWidth();
-        int bitmapHeight = bitmap.getHeight();
-        int canvasWidth = canvas.getWidth();
-        int canvasHeight = canvas.getHeight();
 
-        if (bitmapWidth > canvasWidth || bitmapHeight > canvasHeight) {
-            // resize bitmap to fit in canvas
-            bitmap = Bitmap.createScaledBitmap(bitmap,
-                    (int) (bitmapWidth * 0.85), (int) (bitmapHeight * 0.85), true);
-        }
-
-        // center
-        int bitmapX = bitmap.getWidth() / 2;
-        int bitmapY = bitmap.getHeight() / 2;
-        int parentX = width / 2;
-        int parentY = height / 2;
-        int centerX = parentX - bitmapX;
-        int centerY = parentY - bitmapY;
 
         // calculate rotation angle
         int rotation = (int) (360 - bearing);
 
-        // reset matrix
-        matrix.reset();
-        matrix.setRotate(rotation, bitmapX, bitmapY);
-        // center bitmap on canvas
-        matrix.postTranslate(centerX, centerY);
-        // draw bitmap
-        canvas.drawBitmap(bitmap, matrix, paint);
+
         double angleRadians = Math.toRadians(rotation);
 
         double x = -Math.cos(angleRadians);
