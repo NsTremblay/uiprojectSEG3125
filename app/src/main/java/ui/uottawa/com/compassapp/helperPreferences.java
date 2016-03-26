@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
  * Created by joesi on 2016-03-20.
  */
 public class helperPreferences {
-    private static final String PREFS_NAME = "momenta_prefs";
+    private static final String PREFS_NAME = "coffeeBean_prefs";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;

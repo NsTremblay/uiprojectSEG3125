@@ -20,7 +20,7 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageButton"
+            android:id="@+id/search_image_button"
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
@@ -32,14 +32,14 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageButton2"
+            android:id="@+id/favorite_image_button"
             android:layout_marginLeft="34dp"
             android:background="@null"
             android:layout_marginStart="34dp"
             android:src="@mipmap/favorite_icon_enabled"
-            android:layout_alignTop="@+id/imageButton"
-            android:layout_toRightOf="@+id/imageButton"
-            android:layout_toEndOf="@+id/imageButton" />
+            android:layout_alignTop="@+id/search_image_button"
+            android:layout_toRightOf="@+id/search_image_button"
+            android:layout_toEndOf="@+id/search_image_button" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -47,16 +47,16 @@
             android:id="@+id/chain_image_button"
             android:background="@null"
             android:src="@mipmap/chain_icon_enabled"
-            android:layout_alignTop="@+id/imageButton2"
-            android:layout_toRightOf="@+id/imageButton2"
-            android:layout_toEndOf="@+id/imageButton2"
+            android:layout_alignTop="@+id/favorite_image_button"
+            android:layout_toRightOf="@+id/favorite_image_button"
+            android:layout_toEndOf="@+id/favorite_image_button"
             android:layout_marginLeft="34dp"
             android:layout_marginStart="34dp" />
 
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageButton4"
+            android:id="@+id/rating_image_button"
             android:background="@null"
             android:src="@mipmap/search_icon"
             android:layout_alignTop="@+id/chain_image_button"
