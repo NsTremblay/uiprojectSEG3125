@@ -25,8 +25,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Places;
@@ -37,9 +41,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
-        LocationListener,View.OnClickListener {
+        LocationListener, View.OnClickListener,SeekBar.OnSeekBarChangeListener {
 
-    public static final String NA = "N/A";
     public static final String FIXED = "FIXED";
     // location min time
     private static final int LOCATION_MIN_TIME = 30 * 1000;
@@ -66,12 +69,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CompassView compassView;
     private LocationManager locationManager;
     private GoogleApiClient mGoogleApiClient;
-    private Place[] shops;
     private ImageButton searchImageButton, favoriteImageButton, chainImageButton, ratingImageButton;
     private helperPreferences shPrefs;
+    private helperAPIRequest APIRequest;
+    private EditText searchBar;
+    private Button searchButton;
+    private SeekBar ratingBar;
+    private boolean searchVisible = false;
+    private boolean ratingBarVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //TODO Make a loading screen bedore it acquires the device location
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -80,14 +89,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         favoriteImageButton = (ImageButton) findViewById(R.id.favorite_image_button);
         chainImageButton = (ImageButton) findViewById(R.id.chain_image_button);
         ratingImageButton = (ImageButton) findViewById(R.id.rating_image_button);
+        searchBar = (EditText) findViewById(R.id.editText_search);
+        searchButton = (Button) findViewById(R.id.search_button);
+        ratingBar = (SeekBar) findViewById(R.id.rating_bar);
 
         searchImageButton.setOnClickListener(this);
         favoriteImageButton.setOnClickListener(this);
         chainImageButton.setOnClickListener(this);
         ratingImageButton.setOnClickListener(this);
+        searchButton.setOnClickListener(this);
 
         shPrefs = new helperPreferences(this);
-
+        APIRequest = helperAPIRequest.getInstance(getApplicationContext());
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mGoogleApiClient = new GoogleApiClient
@@ -95,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
-        APIRequest();
+        APIRequest.getCoffeeShopsLocation();
     }
 
     @Override
@@ -147,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 currentLocation.setLatitude(43.296482);
                 currentLocation.setLongitude(5.36978);
             }
-
             // set current location
             onLocationChanged(currentLocation);
         }
@@ -176,26 +188,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onLocationChanged(Location location) {
         currentLocation = location;
         compassView.setCurrentLocation(location);
+
         // used to update location info on screen
-        updateLocation(location);
+
         geomagneticField = new GeomagneticField(
                 (float) currentLocation.getLatitude(),
                 (float) currentLocation.getLongitude(),
                 (float) currentLocation.getAltitude(),
                 System.currentTimeMillis());
-    }
-
-    private void updateLocation(Location location) {
-        if (FIXED.equals(location.getProvider())) {
-
-        }
-
-        // better => make this creation outside method
-        DecimalFormatSymbols dfs = new DecimalFormatSymbols();
-        dfs.setDecimalSeparator('.');
-
+        //Everytime location is changed, save it in the preferences for easier access
+        shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LATITUDE, String.valueOf(currentLocation.getLatitude()));
+        shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LONGITUDE, String.valueOf(currentLocation.getLongitude()));
+        //everytime location changes, update the location of surroundings coffee shops
+        APIRequest.getCoffeeShopsLocation();
 
     }
+
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -267,19 +275,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
-    private void loadResults(JSONArray coffeeshops) {
-        try {
-            shops = new Place[coffeeshops.length()];
-            for (int i = 0; 0 < coffeeshops.length(); i++) {
-                shops[i] = Place.jsonToPontoReferencia(coffeeshops.getJSONObject(i));
-            }
-
-        } catch (JSONException je) {
-            Log.d("Trying to get json obj", je.toString());
-        }
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -304,90 +299,64 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * @param filterInclude
-     * @param filterExclude This function will get the location of all of the coffee shops around the user
-     */
-
-    private void showCoffeeShops(String filterInclude, String filterExclude) {
-
-        //get the location of the device and enter into the query
-        String latitude = Double.toString(compassView.getCurrentLocation().getLatitude());
-        String longitude = Double.toString(compassView.getCurrentLocation().getLongitude());
-
-        //lets try to add some filters
-
-
-        String distance = Integer.toString(10000);
-
-        // TODO: 16-03-20 Check location in a more reliable way
-        if (latitude != null) {
-            new HttpTask("https://maps.googleapis.com/maps/api/place/textsearch/json?location=" + latitude + "," + longitude + "&radius=" + distance + "&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
-
-                @Override
-                protected void onPostExecute(JSONObject json) {
-                    super.onPostExecute(json);
-                    try {
-                        if (json != null) {
-                            JSONArray results = json.getJSONArray("results");
-
-                            //remove the coffeeshops that are not in the list
-
-                            loadResults(results);
-
-                            Log.d("JSONObject", json.toString());
-                            Log.d("JSONArray", results.toString());
-                        }
-
-                    } catch (JSONException e) {
-
-                        e.printStackTrace();
-                    }
-                }
-            }.execute();
-        } else {
-        }
-
-
-    }
-
-    private void APIRequest() {
-
-
-        new HttpTask("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=45.5017,-75.7755&radius=10000&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
-
-            @Override
-            protected void onPostExecute(JSONObject json) {
-                super.onPostExecute(json);
-                try {
-                    if (json != null) {
-                        JSONArray results = json.getJSONArray("results");
-                        Log.d("JSONObject", json.toString());
-                        Log.d("JSONArray", results.toString());
-                    }
-
-                } catch (JSONException e) {
-
-                    e.printStackTrace();
-                }
-            }
-        }.execute();
-    }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if(id == R.id.search_image_button){
-        // pop up search bar here
-        }else if(id == R.id.favorite_image_button){
+        if (id == R.id.search_image_button) {
+            // pop up search bar here
+            if (searchVisible) {
+                searchBar.setVisibility(View.GONE);
+                searchButton.setVisibility(View.GONE);
+                searchVisible = false;
+            } else if (!searchVisible || ratingBarVisible) {
+                ratingBar.setVisibility(View.GONE);
+                searchBar.setVisibility(View.VISIBLE);
+                searchButton.setVisibility(View.VISIBLE);
+                searchVisible = true;
+                ratingBarVisible = false;
+            }
+        } else if (id == R.id.favorite_image_button) {
             favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_disabled));
+
             //favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_enabled));
-        }else if(id == R.id.chain_image_button){
+        } else if (id == R.id.chain_image_button) {
             chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_disabled));
             //chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_enabled));
-        }else if(id == R.id.rating_image_button){
-            //pop up slider or star rating here
+        } else if (id == R.id.rating_image_button) {
+            if (searchVisible || !ratingBarVisible) {
+                searchBar.setVisibility(View.GONE);
+                searchButton.setVisibility(View.GONE);
+                searchVisible = false;
+                ratingBar.setVisibility(View.VISIBLE);
+                ratingBarVisible = true;
+            } else if (ratingBarVisible) {
+                ratingBar.setVisibility(View.GONE);
+                ratingBarVisible = false;
+            }
+        } else if (id == R.id.search_button) {
+
         }
+
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        progress = progresValue;
+
+        Toast.makeText(getApplicationContext(), "Changing seekbar's progress", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        Toast.makeText(getApplicationContext(), "Started tracking seekbar", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        textView.setText("Covered: " + progress + "/" + seekBar.getMax());
+        Toast.makeText(getApplicationContext(), "Stopped tracking seekbar", Toast.LENGTH_SHORT).show();
 
     }
 }

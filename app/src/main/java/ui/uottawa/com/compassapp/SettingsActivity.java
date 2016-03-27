@@ -4,6 +4,7 @@ package ui.uottawa.com.compassapp;
  * Created by joesi on 2016-03-20.
  */
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
@@ -13,6 +14,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -20,6 +22,7 @@ import android.widget.LinearLayout;
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String PREFS_NAME = "coffeeBean_prefs";
+    helperPreferences shPrefs;
 
     /**
      * The fragment argument representing the section number for this
@@ -30,7 +33,13 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
         this.getSharedPreferences(PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
-
+        shPrefs = new helperPreferences(this);
+        if(shPrefs.GetPreferences(Constants.SHPREF_MAX_NUMBER_RESULTS).equals("0")){
+            shPrefs.SavePreferences(Constants.SHPREF_MAX_NUMBER_RESULTS, "10");
+        }
+        if(shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE).equals("0")){
+            shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, "10");
+        }
         PreferenceManager.setDefaultValues(this, R.xml.settings,
                 false);
         initSummary(getPreferenceScreen());
@@ -87,19 +96,20 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     }
 
     private void updatePreference(Preference preference, String key) {
-//        Log.d("preference.toSt",preference.toString());
+
         if (preference instanceof ListPreference) {
             ListPreference listPreference = (ListPreference) preference;
             listPreference.setSummary(listPreference.getEntry());
             return;
         }
-        SharedPreferences sharedPrefs = this.getSharedPreferences(PREFS_NAME, 0);
-       /* if (key.equals("interval_time") || key.equals(Constants.SHPREF_INTERVAL_HOURS) || key.equals(Constants.SHPREF_INTERVAL_MINS)) {
 
+        if (key.equals(Constants.SHPREF_MAX_NUMBER_RESULTS)) {
+            findPreference(Constants.SHPREF_MAX_NUMBER_RESULTS).setSummary(this.getResources().getString(R.string.max_number_results_summary) + " " + shPrefs.GetPreferences(Constants.SHPREF_MAX_NUMBER_RESULTS) + " " + this.getResources().getString(R.string.results));
 
-            findPreference("interval_time").setSummary("HARD CODED FOR NOW");
+        } else if (key.equals(Constants.SHPREF_MAX_SEARCH_DISTANCE)) {
+            findPreference(Constants.SHPREF_MAX_SEARCH_DISTANCE).setSummary(this.getResources().getString(R.string.max_search_distance_summary) +" "+ shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE)+ " " +this.getResources().getString(R.string.kilometers));
 
-        }*/
+        }
 
     }
 

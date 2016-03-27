@@ -7,7 +7,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/coffee_bean_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -25,7 +25,7 @@
             android:name=".SettingsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="Settings"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/SettingsActivityTheme" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo"/>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
     <PreferenceCategory
         android:key="pref_key_storage_settings"
         android:title="@string/search_parameters_category_title">
@@ -10,6 +11,6 @@
         <ui.uottawa.com.compassapp.NumberPickerPreference
             android:defaultValue="0"
             android:key="max_number_results"
-            android:title="@string/max_number_results" />
+            android:title="@string/max_number_results_title" />
     </PreferenceCategory>
 </PreferenceScreen>

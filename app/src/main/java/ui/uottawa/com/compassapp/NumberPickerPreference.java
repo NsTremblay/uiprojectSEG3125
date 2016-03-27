@@ -4,6 +4,8 @@ package ui.uottawa.com.compassapp;
  * Created by joesi on 2016-03-20.
  * For uiprojectSEG3125
  */
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -17,19 +19,33 @@ import android.widget.NumberPicker;
 
 public class NumberPickerPreference extends DialogPreference {
 
-    private int year;
+    private int value;
     private NumberPicker numberPicker;
     private int DEFAULT_VALUE;
+    helperPreferences shPrefs;
+    private int dialogId;
+    private final int MAX_SEARCH_DISTANCE_DIALOG = 0;
+    private final int MAX_NUMBER_RESULTS_DIALOG = 1;
 
     public NumberPickerPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-
+        Activity activity = (Activity) context;
+        shPrefs = new helperPreferences(activity);
         DEFAULT_VALUE = 10;
         setDialogLayoutResource(R.layout.number_pref);
         setPositiveButtonText(android.R.string.ok);
         setNegativeButtonText(android.R.string.cancel);
+
         //gives the string resource id
-        Log.d("attrstostring", attrs.getAttributeValue("http://schemas.android.com/apk/res/android","title"));
+        String strResId = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "title");
+
+        //compare to know which dialog we have
+        if (strResId.equals("@"+String.valueOf(R.string.max_search_distance_title))) {
+            dialogId = MAX_SEARCH_DISTANCE_DIALOG;
+        } else if (strResId.equals("@"+String.valueOf(R.string.max_number_results_title))) {
+            dialogId = MAX_NUMBER_RESULTS_DIALOG;
+
+        }
 
         setDialogIcon(null);
     }
@@ -38,7 +54,14 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onDialogClosed(boolean positiveResult) {
 
         if (positiveResult) {
-            persistInt(numberPicker.getValue());
+            if (dialogId == MAX_NUMBER_RESULTS_DIALOG) {
+                persistInt(numberPicker.getValue());
+                shPrefs.SavePreferences(Constants.SHPREF_MAX_NUMBER_RESULTS, String.valueOf(numberPicker.getValue()));
+
+            } else if (dialogId == MAX_SEARCH_DISTANCE_DIALOG) {
+                persistInt(numberPicker.getValue());
+                shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, String.valueOf(numberPicker.getValue()));
+            }
         }
     }
 
@@ -46,17 +69,17 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
         if (restorePersistedValue) {
             // Restore existing state
-            year = this.getPersistedInt(DEFAULT_VALUE);
+            value = this.getPersistedInt(DEFAULT_VALUE);
         } else {
             // Set default state from the XML attribute
-            year = (Integer) defaultValue;
-            persistInt(year);
+            value = 0;
+            persistInt(value);
         }
     }
 
     @Override
     protected Object onGetDefaultValue(TypedArray a, int index) {
-        return a.getInteger(index,  DEFAULT_VALUE);
+        return a.getInteger(index, DEFAULT_VALUE);
     }
 
     @Override
@@ -74,12 +97,17 @@ public class NumberPickerPreference extends DialogPreference {
         // Initialize state
         numberPicker.setMaxValue(max);
         numberPicker.setMinValue(min);
-        numberPicker.setValue(this.getPersistedInt(DEFAULT_VALUE));
         numberPicker.setWrapSelectorWheel(false);
+        //set default value
+        if (this.getPersistedInt(DEFAULT_VALUE) == 0) {
+            numberPicker.setValue(10);
+
+        } else {
+            numberPicker.setValue(this.getPersistedInt(DEFAULT_VALUE));
+        }
 
         return view;
     }
-
 
 
     //  This code copied from android's settings guide.
@@ -121,7 +149,6 @@ public class NumberPickerPreference extends DialogPreference {
     }
 
 
-
     @Override
     protected Parcelable onSaveInstanceState() {
         final Parcelable superState = super.onSaveInstanceState();
@@ -134,7 +161,7 @@ public class NumberPickerPreference extends DialogPreference {
         // Create instance of custom BaseSavedState
         final SavedState myState = new SavedState(superState);
         // Set the state's value with the class member that holds current setting value
-        myState.value = year;
+        myState.value = value;
         return myState;
     }
 

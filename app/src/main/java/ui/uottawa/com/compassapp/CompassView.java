@@ -5,6 +5,7 @@ package ui.uottawa.com.compassapp;
  * For CompassApp
  */
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,16 +35,18 @@ public class CompassView extends View {
     private float bearing; // rotation angle to North
 
     private Place [] coffeeShops;
-    private helperAPIRequest APIRequest = helperAPIRequest.getInstance();
-
+    private helperAPIRequest APIRequest;
+    private Activity activity;
     private Location currentLocation;
     public CompassView(Context context) {
         super(context);
+        activity = (Activity) context;
         initialize();
     }
 
     public CompassView(Context context, AttributeSet attr) {
         super(context, attr);
+        activity = (Activity) context;
         initialize();
     }
 
@@ -52,13 +55,8 @@ public class CompassView extends View {
         paint.setStrokeWidth(3);
         paint.setColor(Color.WHITE);
         paint.setTextSize(30);
-
-        firstDraw = true;
-
-        matrix = new Matrix();
-        // create bitmap for compass icon
-        bitmap = BitmapFactory.decodeResource(getResources(),
-                R.drawable.compass_icon);
+        APIRequest = helperAPIRequest.getInstance(activity);
+        coffeeShops = APIRequest.getShops();
     }
 
     public void setBearing(float b) {
@@ -75,6 +73,8 @@ public class CompassView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        coffeeShops = APIRequest.getShops();
+
         int cxCompass = getMeasuredWidth() / 2;
         int cyCompass = getMeasuredHeight() / 2;
         float radiusCompass;
@@ -86,25 +86,16 @@ public class CompassView extends View {
         }
         canvas.drawCircle(cxCompass, cyCompass, radiusCompass, paint);
 
-
-
-
         // calculate rotation angle
         int rotation = (int) (360 - bearing);
 
-
-        double angleRadians = Math.toRadians(rotation);
-
-        double x = -Math.cos(angleRadians);
-        double y = Math.sin(angleRadians);
-        Log.d("rotation:", String.valueOf(rotation));
+        /*Log.d("rotation:", String.valueOf(rotation));
         Log.d("bearing:", String.valueOf(bearing));
         Log.d("X:", String.valueOf(x));
         Log.d("Y:", String.valueOf(y));
-        canvas.drawText("TEST TEXT", cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
 
         Log.d("Coordinatea:", String.valueOf(cxCompass + (radiusCompass * (float) x)));
-        Log.d("Coordinateb:", String.valueOf(cyCompass + (radiusCompass * (float) y)));
+        Log.d("Coordinateb:", String.valueOf(cyCompass + (radiusCompass * (float) y)));*/
         float bearingLoc;
         if(currentLocation!=null){
             //loop through all of the returned coffeeshops
@@ -115,19 +106,21 @@ public class CompassView extends View {
                     dest.setLongitude(coffeeShops[i].getLongitude());
 
                     bearingLoc = currentLocation.bearingTo(dest);
-                    Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+                    //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
 
-                    double angleRadians2 = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+                    double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
 
-                    double x2 = Math.cos(angleRadians2);
-                    double y2 = Math.sin(angleRadians2);
-                    canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x2), cyCompass + (radiusCompass * (float) y2), paint);
+                    double x = Math.cos(angleRadians);
+                    double y = Math.sin(angleRadians);
+
+                    //TODO Draw a clickable object instead of only text
+                    canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
                 }
             }else{
                 //call the function to get the locations
                 //getPlaces();
             }
-            Location dest = new Location("dest");
+           /* Location dest = new Location("dest");
 
             bearingLoc = currentLocation.bearingTo(dest);
 
@@ -135,7 +128,7 @@ public class CompassView extends View {
 
             double x2 = Math.cos(angleRadians2);
             double y2 = Math.sin(angleRadians2);
-            canvas.drawText("LOC", cxCompass + (radiusCompass * (float) x2), cyCompass + (radiusCompass * (float) y2), paint);
+            canvas.drawText("LOC", cxCompass + (radiusCompass * (float) x2), cyCompass + (radiusCompass * (float) y2), paint);*/
 
         }else{
             Location dest = new Location("Dest");
@@ -153,60 +146,5 @@ public class CompassView extends View {
     }
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
-    }
-
-    public Location getCurrentLocation(){
-        return this.currentLocation;
-    }
-
-    public void addCoffee(Place [] coffeeShops){
-        this.coffeeShops = coffeeShops;
-    }
-
-    private void getPlaces(){
-        //get the location of the device and enter into the query
-        String latitude = Double.toString(currentLocation.getLatitude());
-        String longitude = Double.toString(currentLocation.getLongitude());
-
-        String distance = Integer.toString(1000);
-
-        // TODO: 16-03-20 Check location in a more reliable way
-        if(latitude!=null){
-            new HttpTask("https://maps.googleapis.com/maps/api/place/textsearch/json?location="+latitude+","+longitude+"&radius="+distance+"&type=cafe&key=AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo", "GET") {
-
-                @Override
-                protected void onPostExecute(JSONObject json) {
-                    super.onPostExecute(json);
-                    try {
-                        if (json != null) {
-                            JSONArray results = json.getJSONArray("results");
-                            loadResults(results);
-
-                            Log.d("JSONObject", json.toString());
-                            Log.d("JSONArray", results.toString());
-                        }
-
-                    } catch (JSONException e) {
-
-                        e.printStackTrace();
-                    }
-                }
-            }.execute();
-        }else{}
-
-
-    }
-
-    private void loadResults(JSONArray coffeeshops){
-        try {
-            coffeeShops = new Place[coffeeshops.length()];
-            for (int i = 0; 0 < coffeeshops.length(); i++) {
-                coffeeShops[i] = Place.jsonToPontoReferencia(coffeeshops.getJSONObject(i));
-            }
-
-        }catch (JSONException je)
-        {
-            Log.d("Trying to get json obj",je.toString());
-        }
     }
 }
