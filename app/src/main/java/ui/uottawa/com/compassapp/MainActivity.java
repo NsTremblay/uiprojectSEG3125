@@ -39,9 +39,10 @@ import com.google.android.gms.maps.GoogleMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
-        LocationListener, View.OnClickListener,SeekBar.OnSeekBarChangeListener {
+        LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
     public static final String FIXED = "FIXED";
     // location min time
@@ -74,15 +75,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private helperAPIRequest APIRequest;
     private EditText searchBar;
     private Button searchButton;
+    private TextView ratingTextView;
     private SeekBar ratingBar;
     private boolean searchVisible = false;
     private boolean ratingBarVisible = false;
+    private boolean favoritesEnabled = false;
+    private boolean chainsEnabled = false;
+    private float rating;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //TODO Make a loading screen bedore it acquires the device location
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        shPrefs = new helperPreferences(this);
+        APIRequest = helperAPIRequest.getInstance(getApplicationContext());
+        shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, String.valueOf(10));
 
         compassView = (CompassView) findViewById(R.id.compass);
         searchImageButton = (ImageButton) findViewById(R.id.search_image_button);
@@ -92,15 +100,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         searchBar = (EditText) findViewById(R.id.editText_search);
         searchButton = (Button) findViewById(R.id.search_button);
         ratingBar = (SeekBar) findViewById(R.id.rating_bar);
+        ratingTextView = (TextView) findViewById(R.id.rating_text_view);
 
         searchImageButton.setOnClickListener(this);
         favoriteImageButton.setOnClickListener(this);
         chainImageButton.setOnClickListener(this);
         ratingImageButton.setOnClickListener(this);
         searchButton.setOnClickListener(this);
+        ratingBar.setOnSeekBarChangeListener(this);
+        ratingBar.setProgress((int)(Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING))*20));
 
-        shPrefs = new helperPreferences(this);
-        APIRequest = helperAPIRequest.getInstance(getApplicationContext());
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mGoogleApiClient = new GoogleApiClient
@@ -108,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
-        APIRequest.getCoffeeShopsLocation();
+        APIRequest.getCoffeeShopsLocation(false);
     }
 
     @Override
@@ -200,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LATITUDE, String.valueOf(currentLocation.getLatitude()));
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LONGITUDE, String.valueOf(currentLocation.getLongitude()));
         //everytime location changes, update the location of surroundings coffee shops
-        APIRequest.getCoffeeShopsLocation();
+        APIRequest.getCoffeeShopsLocation(false);
 
     }
 
@@ -295,6 +304,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             startActivity(intent);
             return true;
         }
+        if (id == R.id.action_favorites) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -311,52 +325,68 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 searchVisible = false;
             } else if (!searchVisible || ratingBarVisible) {
                 ratingBar.setVisibility(View.GONE);
+                ratingTextView.setVisibility(View.GONE);
                 searchBar.setVisibility(View.VISIBLE);
                 searchButton.setVisibility(View.VISIBLE);
                 searchVisible = true;
                 ratingBarVisible = false;
             }
-        } else if (id == R.id.favorite_image_button) {
-            favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_disabled));
 
-            //favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_enabled));
+        } else if (id == R.id.favorite_image_button) {
+            if (favoritesEnabled) {
+                favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_disabled));
+                favoritesEnabled = false;
+            } else if (!favoritesEnabled) {
+                favoriteImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.favorite_icon_enabled));
+                favoritesEnabled = true;
+            }
+            APIRequest.getCoffeeShopsLocation(false);
+
         } else if (id == R.id.chain_image_button) {
-            chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_disabled));
-            //chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_enabled));
+            if (chainsEnabled) {
+                chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_disabled));
+                chainsEnabled = false;
+                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG,"0");
+            } else if (!chainsEnabled) {
+                chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_enabled));
+                chainsEnabled = true;
+                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG,"1");
+            }
+            APIRequest.getCoffeeShopsLocation(false);
+
         } else if (id == R.id.rating_image_button) {
             if (searchVisible || !ratingBarVisible) {
                 searchBar.setVisibility(View.GONE);
                 searchButton.setVisibility(View.GONE);
                 searchVisible = false;
                 ratingBar.setVisibility(View.VISIBLE);
+                ratingTextView.setVisibility(View.VISIBLE);
                 ratingBarVisible = true;
             } else if (ratingBarVisible) {
                 ratingBar.setVisibility(View.GONE);
+                ratingTextView.setVisibility(View.GONE);
                 ratingBarVisible = false;
             }
         } else if (id == R.id.search_button) {
-
+            shPrefs.SavePreferences(Constants.SHPREF_USER_SEARCH_VALUE, String.valueOf(searchBar.getText()));
+            APIRequest.getCoffeeShopsLocation(true);
         }
-
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        progress = progresValue;
-
-        Toast.makeText(getApplicationContext(), "Changing seekbar's progress", Toast.LENGTH_SHORT).show();
+        rating = (float) (progress / 20.0);
+        ratingTextView.setText(Float.toString(rating));
     }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-        Toast.makeText(getApplicationContext(), "Started tracking seekbar", Toast.LENGTH_SHORT).show();
-
-    }
+    public void onStartTrackingTouch(SeekBar seekBar) {}
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        textView.setText("Covered: " + progress + "/" + seekBar.getMax());
-        Toast.makeText(getApplicationContext(), "Stopped tracking seekbar", Toast.LENGTH_SHORT).show();
-
+        ratingTextView.setText(Float.toString(rating));
+        shPrefs.SavePreferences(Constants.SHPREF_MIN_RATING, String.valueOf(rating));
+        //rating changed, redo the request to the API
+        APIRequest.getCoffeeShopsLocation(false);
     }
 }

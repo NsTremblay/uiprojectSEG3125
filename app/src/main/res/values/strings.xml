@@ -10,4 +10,5 @@
     <string name="kilometers">km</string>
     <string name="action_favorites">Favorites</string>
     <string name="button_search">Search</string>
+    <string name="invalid_search">Invalid Search</string>
 </resources>

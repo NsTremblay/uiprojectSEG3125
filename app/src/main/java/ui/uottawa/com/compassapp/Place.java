@@ -16,44 +16,63 @@ public class Place {
     private String vicinity;
     private Double latitude;
     private Double longitude;
+    private Double rating;
 
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
+
     public String getIcon() {
         return icon;
     }
+
     public void setIcon(String icon) {
         this.icon = icon;
     }
+
     public Double getLatitude() {
         return latitude;
     }
+
     public void setLatitude(Double latitude) {
         this.latitude = latitude;
     }
+
     public Double getLongitude() {
         return longitude;
     }
+
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
+
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
     public String getVicinity() {
         return vicinity;
     }
+
     public void setVicinity(String vicinity) {
         this.vicinity = vicinity;
     }
-
 
 
     static Place jsonToPontoReferencia(JSONObject pontoReferencia) {
@@ -66,6 +85,8 @@ public class Place {
             result.setIcon(pontoReferencia.getString("icon"));
             result.setName(pontoReferencia.getString("name"));
             result.setId(pontoReferencia.getString("id"));
+            result.setRating(pontoReferencia.getDouble("rating"));
+
             return result;
         } catch (JSONException ex) {
             Logger.getLogger(Place.class.getName()).log(Level.SEVERE, null, ex);
@@ -77,6 +98,7 @@ public class Place {
     public String toString() {
         return "Place{" + "id=" + id + ", icon=" + icon + ", name=" + name + ", latitude=" + latitude + ", longitude=" + longitude + '}';
     }
+
 
 }
 
