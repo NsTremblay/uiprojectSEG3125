@@ -51,7 +51,7 @@ public class helperAPIRequest {
         rating = Double.parseDouble(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING));
 
         //get the maximum search distance(radius) from shared prefs of the device and enter into the query. Multiply by 1000 to get meters from km stored in shared prefs
-        String distance = String.valueOf(Integer.valueOf(shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE)) * 1000);
+        String distance = String.valueOf(Integer.valueOf(shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE)) * 100);
         String api_url = "";
 
         //handling the user search
@@ -115,11 +115,12 @@ public class helperAPIRequest {
                     Log.d("PLACEINFOSEARCH", currentPlace.toString());
                 }
             }
-
-
-        } catch (JSONException je) {
-            Log.d("Trying to get json obj", je.toString());
+            } catch (JSONException e) {
+            e.printStackTrace();
         }
+
+
+
     }
 
     public Place[] getShops() {

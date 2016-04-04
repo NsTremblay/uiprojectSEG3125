@@ -13,6 +13,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -22,6 +25,8 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class CompassView extends View {
 
@@ -36,6 +41,8 @@ public class CompassView extends View {
     private Activity activity;
     private Location currentLocation;
 
+    private ArrayList<android.graphics.Rect> coffeeShopsCircles;
+
     public CompassView(Context context) {
         super(context);
         activity = (Activity) context;
@@ -49,12 +56,16 @@ public class CompassView extends View {
     }
 
     private void initialize() {
+
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
         paint.setColor(Color.WHITE);
         paint.setTextSize(30);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         APIRequest = helperAPIRequest.getInstance(activity);
         coffeeShops = APIRequest.getShops();
+
     }
 
     public void setBearing(float b) {
@@ -75,7 +86,8 @@ public class CompassView extends View {
         int cxCompass = getMeasuredWidth() / 2;
         int cyCompass = getMeasuredHeight() / 2;
         float radiusCompass;
-
+        Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
         if (cxCompass > cyCompass) {
             radiusCompass = (float) (cyCompass * 0.9);
         } else {
@@ -90,6 +102,10 @@ public class CompassView extends View {
         if (currentLocation != null) {
             //loop through all of the returned coffeeshops
             if (coffeeShops != null) {
+
+                //make the circles before Drawing them and store them
+                coffeeShopsCircles = new ArrayList<Rect>();
+
                 for (Place coffeeShop : coffeeShops) {
                     Location dest = new Location(coffeeShop.getName());
                     dest.setLatitude(coffeeShop.getLatitude());
@@ -97,14 +113,17 @@ public class CompassView extends View {
 
                     bearingLoc = currentLocation.bearingTo(dest);
                     //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
-
                     double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
 
                     double x = Math.cos(angleRadians);
                     double y = Math.sin(angleRadians);
+                    paint.setStrokeWidth(5);
+
+//                    coffeeShopsCircles.add(new Rect(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y)));
 
                     //TODO Draw a clickable object instead of only text
-                    canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
+                    canvas.drawCircle(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), (float) Math.pow(coffeeShop.getRating().floatValue(), 3), paint);
+                    //canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
                 }
             }
         } else {
@@ -114,5 +133,23 @@ public class CompassView extends View {
 
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
+    }
+
+    public class coffeeCircle {
+        int radius;
+        int centerX;
+        int centerY;
+
+        coffeeCircle(int centerX, int centerY, int radius) {
+            this.radius = radius;
+            this.centerX = centerX;
+            this.centerY = centerY;
+        }
+
+        @Override
+        public String toString() {
+            return "Circle[" + centerX + ", " + centerY + ", " + radius + "]";
+        }
+
     }
 }
