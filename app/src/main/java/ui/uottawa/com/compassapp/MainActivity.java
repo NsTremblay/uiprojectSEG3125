@@ -20,6 +20,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telecom.Connection;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +33,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 
@@ -42,7 +47,8 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
-        LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+        LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener , ConnectionCallbacks, OnConnectionFailedListener {
+
 
     public static final String FIXED = "FIXED";
     // location min time
@@ -114,6 +120,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
@@ -122,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onStart() {
+        mGoogleApiClient.connect();
         super.onStart();
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensorGravity = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -195,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onLocationChanged(Location location) {
+
         currentLocation = location;
         compassView.setCurrentLocation(location);
 
@@ -388,5 +399,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         shPrefs.SavePreferences(Constants.SHPREF_MIN_RATING, String.valueOf(rating));
         //rating changed, redo the request to the API
         APIRequest.getCoffeeShopsLocation(false);
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        onLocationChanged(currentLocation);
+        Log.i("LATITUDE", String.valueOf(currentLocation.getLatitude()));
+        Log.i("LONGITUDE", String.valueOf(currentLocation.getLatitude()));
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result){
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int suspended){
+
     }
 }

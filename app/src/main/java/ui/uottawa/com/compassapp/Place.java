@@ -85,7 +85,14 @@ public class Place {
             result.setIcon(pontoReferencia.getString("icon"));
             result.setName(pontoReferencia.getString("name"));
             result.setId(pontoReferencia.getString("id"));
-            result.setRating(pontoReferencia.getDouble("rating"));
+
+            try{
+                result.setRating(pontoReferencia.getDouble("rating"));
+            }catch(JSONException e){
+                if(e.getMessage().equals("No value for rating")){
+                    result.setRating(4.0);
+                }
+            }
 
             return result;
         } catch (JSONException ex) {

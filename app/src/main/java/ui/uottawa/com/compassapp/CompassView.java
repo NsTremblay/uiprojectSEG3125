@@ -96,7 +96,7 @@ public class CompassView extends View {
                     dest.setLongitude(coffeeShop.getLongitude());
 
                     bearingLoc = currentLocation.bearingTo(dest);
-                    Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+                    //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
 
                     double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
 
