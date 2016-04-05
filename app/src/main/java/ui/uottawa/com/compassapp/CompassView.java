@@ -20,6 +20,9 @@ import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -40,6 +43,7 @@ public class CompassView extends View {
     private helperAPIRequest APIRequest;
     private Activity activity;
     private Location currentLocation;
+    private Button[] coffeeButtons;
 
     private ArrayList<android.graphics.Rect> coffeeShopsCircles;
 
@@ -47,6 +51,9 @@ public class CompassView extends View {
         super(context);
         activity = (Activity) context;
         initialize();
+
+        //put all of the views we need around the circle
+
     }
 
     public CompassView(Context context, AttributeSet attr) {
@@ -56,8 +63,6 @@ public class CompassView extends View {
     }
 
     private void initialize() {
-
-
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
         paint.setColor(Color.WHITE);
@@ -65,7 +70,11 @@ public class CompassView extends View {
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         APIRequest = helperAPIRequest.getInstance(activity);
         coffeeShops = APIRequest.getShops();
+        coffeeButtons = new Button[coffeeShops.length];
 
+        for(int i = 0; i<coffeeShops.length; i++){
+            //coffeeButtons = new Button();
+        }
     }
 
     public void setBearing(float b) {
@@ -119,7 +128,7 @@ public class CompassView extends View {
                     double y = Math.sin(angleRadians);
                     paint.setStrokeWidth(5);
 
-//                    coffeeShopsCircles.add(new Rect(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y)));
+//                  coffeeShopsCircles.add(new Rect(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y)));
 
                     //TODO Draw a clickable object instead of only text
                     canvas.drawCircle(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), (float) Math.pow(coffeeShop.getRating().floatValue(), 3), paint);
@@ -133,6 +142,40 @@ public class CompassView extends View {
 
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
+
+    }
+
+    public void updateLocations(){
+
+        float bearingLoc =0;
+
+        RelativeLayout myLayout = findViewById(R.id.compass);
+        // calculate rotation angle
+        int rotation = (int) (360 - bearing);
+
+        Button myButton = new Button();
+        myButton.setLayoutParams(new LinearLayout.LayoutParams(
+                20,
+                0b10100));
+
+        myLayout.addView(myButton);
+
+        for (Place coffeeShop : coffeeShops) {
+            Location dest = new Location(coffeeShop.getName());
+            dest.setLatitude(coffeeShop.getLatitude());
+            dest.setLongitude(coffeeShop.getLongitude());
+
+            bearingLoc = currentLocation.bearingTo(dest);
+            //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+            double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+
+            double x = Math.cos(angleRadians);
+            double y = Math.sin(angleRadians);
+
+
+            //TODO Draw a  object instead of only text
+            //canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
+        }
     }
 
     public class coffeeCircle {

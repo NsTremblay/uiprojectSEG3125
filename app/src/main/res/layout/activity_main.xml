@@ -123,13 +123,16 @@
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+        android:layout_height="fill_parent"
+        android:id="@+id/compass"
+        >
 
         <ui.uottawa.com.compassapp.CompassView
-            android:id="@+id/compass"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_centerHorizontal="true" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/circle"/>
+
+
     </RelativeLayout>
 
 </LinearLayout>

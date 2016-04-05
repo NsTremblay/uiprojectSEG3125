@@ -283,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (accelOrMagnetic) {
             compassView.postInvalidate();
+        }else{
+            compassView.updateLocations();
         }
     }
 
