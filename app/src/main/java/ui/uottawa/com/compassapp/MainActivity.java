@@ -3,12 +3,15 @@ package ui.uottawa.com.compassapp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -22,13 +25,19 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Connection;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,6 +97,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean favoritesEnabled = false;
     private boolean chainsEnabled = false;
     private float rating;
+    private Place[] coffeeShops;
+    Button coffeeButton;
+    RelativeLayout coffeeLayout;
+    private int counterForLog;
+    private ArrayList<Button> coffeeButtons;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,10 +110,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         shPrefs = new helperPreferences(this);
-        APIRequest = helperAPIRequest.getInstance(getApplicationContext());
+        //APIRequest = helperAPIRequest.getInstance(getApplicationContext());
         shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, String.valueOf(10));
 
-        compassView = (CompassView) findViewById(R.id.compass);
+        coffeeLayout = (RelativeLayout)findViewById(R.id.compass);
+        coffeeLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
+
+        //compassView = (CompassView) findViewById(R.id.compass);
         searchImageButton = (ImageButton) findViewById(R.id.search_image_button);
         favoriteImageButton = (ImageButton) findViewById(R.id.favorite_image_button);
         chainImageButton = (ImageButton) findViewById(R.id.chain_image_button);
@@ -114,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ratingImageButton.setOnClickListener(this);
         searchButton.setOnClickListener(this);
         ratingBar.setOnSeekBarChangeListener(this);
-        ratingBar.setProgress((int)(Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING))*20));
+        ratingBar.setProgress((int) (Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING)) * 20));
 
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -126,7 +144,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
-        APIRequest.getCoffeeShopsLocation(false);
+
+        APIRequest = helperAPIRequest.getInstance(this.getBaseContext());
+        coffeeButtons = new ArrayList<Button>();
+        coffeeButton = new Button(this);
+
     }
 
     @Override
@@ -204,10 +226,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(Location location) throws NullPointerException{
 
         currentLocation = location;
-        compassView.setCurrentLocation(location);
+        //compassView.setCurrentLocation(location);
 
         // used to update location info on screen
 
@@ -220,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LATITUDE, String.valueOf(currentLocation.getLatitude()));
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LONGITUDE, String.valueOf(currentLocation.getLongitude()));
         //everytime location changes, update the location of surroundings coffee shops
-        APIRequest.getCoffeeShopsLocation(false);
+        //APIRequest.getCoffeeShopsLocation(false);
 
     }
 
@@ -279,13 +301,141 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         // update compass view
-        compassView.setBearing((float) bearing);
+        //compassView.setBearing((float) bearing);
 
         if (accelOrMagnetic) {
-            compassView.postInvalidate();
-        }else{
-            compassView.updateLocations();
+            //compassView.postInvalidate();
+        } else {
+            //compassView.updateLocations();
         }
+
+        int cxCompass = coffeeLayout.getWidth()/2;
+        int cyCompass = coffeeLayout.getHeight()/2;
+
+        float radiusCompass = 0;
+
+        if (cxCompass > cyCompass) {
+            radiusCompass = (float) (cyCompass * 0.9);
+        } else {
+            radiusCompass = (float) (cxCompass * 0.9);
+        }
+
+
+        if(coffeeShops==null){
+            coffeeShops = APIRequest.getShops();
+            if(coffeeShops!=null){
+            try {
+//                coffeeButtons = new Button[coffeeShops.length];
+                for (int i = 0; i < coffeeShops.length; i++) {
+                    Button tempCoffee = new Button(this);
+                    int pow = 0;if(coffeeShops[i].getRating()<3){pow=4;}else{pow=3;}
+                    tempCoffee.setLayoutParams(new LinearLayout.LayoutParams((int) Math.pow(coffeeShops[i].getRating(), pow), (int) Math.pow(coffeeShops[i].getRating(), pow
+                    )));
+                    tempCoffee.setBackgroundResource(R.drawable.round_button);
+                    tempCoffee.setGravity(RelativeLayout.CENTER_IN_PARENT);
+                    tempCoffee.setId(i);
+                    Place tempPlace = coffeeShops[i];
+                    tempCoffee.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v) {
+                            // Perform action on click
+                            Log.i("Button was clicked", "Clicked Button ");
+                        }
+                    });
+                    Log.i("Hey", "onSensorChanged: ");
+
+                    boolean overlap = false;
+                    //check if there is overlap
+                    coffeeButtons.add(tempCoffee);
+
+
+                    Location dest = new Location(coffeeShops[i].getName());
+
+                    dest.setLatitude(coffeeShops[i].getLatitude());
+                    dest.setLongitude(coffeeShops[i].getLongitude());
+
+                    float bearingLoc;
+                    // calculate rotation angle
+                    int rotation = (int) (360 - bearing);
+
+                    bearingLoc = currentLocation.bearingTo(dest);
+
+                    double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+
+                    Display display = getWindowManager().getDefaultDisplay();
+                    Point size = new Point();
+                    display.getSize(size);
+
+                    int width = size.x;
+                    int height = size.y;
+
+                    float x = (float) Math.cos(angleRadians);
+                    float y = (float) Math.sin(angleRadians);
+
+                    coffeeButtons.get(i).setTranslationX(cxCompass + (radiusCompass * (float) x) - coffeeButtons.get(i).getWidth() / 2);
+                    coffeeButtons.get(i).setTranslationY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
+
+
+
+                    for (int b = 0; b<i;b++) {
+                        if(coffeeButtons.get(i).getY() > coffeeButtons.get(b).getY()
+                                && (coffeeButtons.get(i).getY() < (coffeeButtons.get(b).getY() + coffeeButtons.get(b).getHeight()))
+                                && coffeeButtons.get(i).getX() > coffeeButtons.get(b).getX()
+                                && (coffeeButtons.get(i).getX() < (coffeeButtons.get(b).getX() + coffeeButtons.get(b).getWidth()))){
+                            overlap = true;
+                        }
+                    }
+                    if(!overlap){
+                        coffeeLayout.addView(tempCoffee);
+                    }
+                }
+            }catch(Exception e){
+                Log.i("Error in shops", "onConnected: ");
+            }
+            }
+        }else {
+
+            if (counterForLog>2){
+            try {
+                //loop through all of the coffeeshops and update their location
+                for (int i = 0; i < coffeeShops.length; i++) {
+
+                    Location dest = new Location(coffeeShops[i].getName());
+
+                    dest.setLatitude(coffeeShops[i].getLatitude());
+                    dest.setLongitude(coffeeShops[i].getLongitude());
+
+                    float bearingLoc;
+                    // calculate rotation angle
+                    int rotation = (int) (360 - bearing);
+
+                    bearingLoc = currentLocation.bearingTo(dest);
+
+                    double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+
+                    Display display = getWindowManager().getDefaultDisplay();
+                    Point size = new Point();
+                    display.getSize(size);
+
+                    int width = size.x;
+                    int height = size.y;
+
+                    float x = (float) Math.cos(angleRadians);
+                    float y = (float) Math.sin(angleRadians);
+
+                    coffeeButtons.get(i).setTranslationX(cxCompass + (radiusCompass * (float) x) - coffeeButtons.get(i).getWidth() / 2);
+                    coffeeButtons.get(i).setTranslationY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
+                }
+            } catch (Exception e) {
+                Log.i("BUtton Exception", e.toString());
+            }
+//                Log.i("Bearing",  String.valueOf(bearing));
+                counterForLog = 0;
+            }
+        }
+
+
+
+        counterForLog++;
     }
 
     @Override
@@ -407,9 +557,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onConnected(Bundle connectionHint) {
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        onLocationChanged(currentLocation);
+
+        try {
+            onLocationChanged(currentLocation);
+        }catch (Exception e){
+            Log.i("Cannot change", e.toString());
+        }
+
         Log.i("LATITUDE", String.valueOf(currentLocation.getLatitude()));
         Log.i("LONGITUDE", String.valueOf(currentLocation.getLatitude()));
+
+        APIRequest.getCoffeeShopsLocation(false);
+
+
+
+
+
+
+
+
+
+//        for (Place coffeeTemp:coffeeShops){
+//            Button coffeeButton = new Button(this);
+//            coffeeButton.setLayoutParams(new RelativeLayout.LayoutParams(20,20));
+//
+//            coffeeButton.setOnClickListener(new View.OnClickListener() {
+//                public void onClick(View v) {
+//                    // Perform action on click
+//                    Log.i("Button was clicked", "Clicked Button");
+//                }
+//            });
+//
+//        }
+
     }
 
     @Override

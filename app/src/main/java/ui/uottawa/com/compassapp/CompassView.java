@@ -17,12 +17,14 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.location.Location;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -70,11 +72,12 @@ public class CompassView extends View {
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         APIRequest = helperAPIRequest.getInstance(activity);
         coffeeShops = APIRequest.getShops();
-        coffeeButtons = new Button[coffeeShops.length];
-
-        for(int i = 0; i<coffeeShops.length; i++){
-            //coffeeButtons = new Button();
-        }
+        updateLocations();
+//        coffeeButtons = new Button[coffeeShops.length];
+//
+//        for(int i = 0; i<coffeeShops.length; i++){
+//            //coffeeButtons = new Button();
+//        }
     }
 
     public void setBearing(float b) {
@@ -95,8 +98,10 @@ public class CompassView extends View {
         int cxCompass = getMeasuredWidth() / 2;
         int cyCompass = getMeasuredHeight() / 2;
         float radiusCompass;
+
         Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
         canvas.drawBitmap(bitmap, 0, 0, paint);
+
         if (cxCompass > cyCompass) {
             radiusCompass = (float) (cyCompass * 0.9);
         } else {
@@ -147,52 +152,24 @@ public class CompassView extends View {
 
     public void updateLocations(){
 
-        float bearingLoc =0;
-
-        RelativeLayout myLayout = findViewById(R.id.compass);
-        // calculate rotation angle
-        int rotation = (int) (360 - bearing);
-
-        Button myButton = new Button();
-        myButton.setLayoutParams(new LinearLayout.LayoutParams(
-                20,
-                0b10100));
-
-        myLayout.addView(myButton);
-
-        for (Place coffeeShop : coffeeShops) {
-            Location dest = new Location(coffeeShop.getName());
-            dest.setLatitude(coffeeShop.getLatitude());
-            dest.setLongitude(coffeeShop.getLongitude());
-
-            bearingLoc = currentLocation.bearingTo(dest);
-            //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
-            double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
-
-            double x = Math.cos(angleRadians);
-            double y = Math.sin(angleRadians);
 
 
-            //TODO Draw a  object instead of only text
-            //canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
-        }
-    }
 
-    public class coffeeCircle {
-        int radius;
-        int centerX;
-        int centerY;
-
-        coffeeCircle(int centerX, int centerY, int radius) {
-            this.radius = radius;
-            this.centerX = centerX;
-            this.centerY = centerY;
-        }
-
-        @Override
-        public String toString() {
-            return "Circle[" + centerX + ", " + centerY + ", " + radius + "]";
-        }
-
+//        for (Place coffeeShop : coffeeShops) {
+//            Location dest = new Location(coffeeShop.getName());
+//            dest.setLatitude(coffeeShop.getLatitude());
+//            dest.setLongitude(coffeeShop.getLongitude());
+//
+//            bearingLoc = currentLocation.bearingTo(dest);
+//            //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+//            double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+//
+//            double x = Math.cos(angleRadians);
+//            double y = Math.sin(angleRadians);
+//
+//
+//            //TODO Draw a  object instead of only text
+//            //canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
+//        }
     }
 }
