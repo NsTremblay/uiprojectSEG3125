@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     RelativeLayout coffeeLayout;
     private int counterForLog;
     private ArrayList<Button> coffeeButtons;
+    private TextView centerBean;
 
 
     @Override
@@ -125,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         searchButton = (Button) findViewById(R.id.search_button);
         ratingBar = (SeekBar) findViewById(R.id.rating_bar);
         ratingTextView = (TextView) findViewById(R.id.rating_text_view);
+        centerBean = (TextView) findViewById(R.id.theCenter);
 
         searchImageButton.setOnClickListener(this);
         favoriteImageButton.setOnClickListener(this);
@@ -153,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onStart() {
+
         mGoogleApiClient.connect();
         super.onStart();
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -242,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LATITUDE, String.valueOf(currentLocation.getLatitude()));
         shPrefs.SavePreferences(Constants.SHPREF_LOCATION_LONGITUDE, String.valueOf(currentLocation.getLongitude()));
         //everytime location changes, update the location of surroundings coffee shops
-        //APIRequest.getCoffeeShopsLocation(false);
+        APIRequest.getCoffeeShopsLocation(false);
 
     }
 
@@ -325,10 +328,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             coffeeShops = APIRequest.getShops();
             if(coffeeShops!=null){
             try {
+                Log.i("But", "TRying to add buttons "+ coffeeShops.length);
 //                coffeeButtons = new Button[coffeeShops.length];
                 for (int i = 0; i < coffeeShops.length; i++) {
+
                     Button tempCoffee = new Button(this);
                     int pow = 0;if(coffeeShops[i].getRating()<3){pow=4;}else{pow=3;}
+
+
                     tempCoffee.setLayoutParams(new LinearLayout.LayoutParams((int) Math.pow(coffeeShops[i].getRating(), pow), (int) Math.pow(coffeeShops[i].getRating(), pow
                     )));
                     tempCoffee.setBackgroundResource(R.drawable.round_button);
@@ -338,15 +345,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     tempCoffee.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
                             // Perform action on click
-                            Log.i("Button was clicked", "Clicked Button ");
+                            int idOfThePlace = v.getId();
+                            Log.i("Button was clicked", "Clicked Button " + idOfThePlace + " place clicked " + coffeeShops[idOfThePlace].getName());
+                            centerBean.setText(coffeeShops[idOfThePlace].getName());
+
                         }
                     });
-                    Log.i("Hey", "onSensorChanged: ");
 
                     boolean overlap = false;
                     //check if there is overlap
                     coffeeButtons.add(tempCoffee);
-
 
                     Location dest = new Location(coffeeShops[i].getName());
 
@@ -374,20 +382,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     coffeeButtons.get(i).setTranslationX(cxCompass + (radiusCompass * (float) x) - coffeeButtons.get(i).getWidth() / 2);
                     coffeeButtons.get(i).setTranslationY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
 
-
-
                     for (int b = 0; b<i;b++) {
+                        Log.i("Over", "There was overlap y"+coffeeButtons.get(i).getY()+":"+coffeeButtons.get(b).getY()+" X"+coffeeButtons.get(i).getX()+":"+coffeeButtons.get(b).getY()+" Then width "+coffeeButtons.get(b).getWidth()+" height"+coffeeButtons.get(i).getHeight());
                         if(coffeeButtons.get(i).getY() > coffeeButtons.get(b).getY()
                                 && (coffeeButtons.get(i).getY() < (coffeeButtons.get(b).getY() + coffeeButtons.get(b).getHeight()))
                                 && coffeeButtons.get(i).getX() > coffeeButtons.get(b).getX()
                                 && (coffeeButtons.get(i).getX() < (coffeeButtons.get(b).getX() + coffeeButtons.get(b).getWidth()))){
                             overlap = true;
+                            Log.i("Collision", "There was a collision");
                         }
                     }
-                    if(!overlap){
-                        coffeeLayout.addView(tempCoffee);
+                    coffeeLayout.addView(tempCoffee);
+
+                }
+
+                int closestIndex = 0;
+
+                //get the closest coffee shop
+                for(int c = 1;c<coffeeShops.length; c++){
+                    if( coffeeShops[closestIndex].getDistance(currentLocation.getLatitude(), currentLocation.getLongitude())>coffeeShops[c].getDistance(currentLocation.getLatitude(), currentLocation.getLongitude())){
+                        closestIndex = c;
                     }
                 }
+                centerBean.setText("The closest Coffee Shop is at "+coffeeShops[closestIndex].getDistance(currentLocation.getLatitude(), currentLocation.getLongitude()));
+
             }catch(Exception e){
                 Log.i("Error in shops", "onConnected: ");
             }
@@ -426,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     coffeeButtons.get(i).setTranslationY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
                 }
             } catch (Exception e) {
-                Log.i("BUtton Exception", e.toString());
+                Log.i("Button Exception", e.toString());
             }
 //                Log.i("Bearing",  String.valueOf(bearing));
                 counterForLog = 0;
@@ -569,14 +587,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         APIRequest.getCoffeeShopsLocation(false);
 
-
-
-
-
-
-
-
-
 //        for (Place coffeeTemp:coffeeShops){
 //            Button coffeeButton = new Button(this);
 //            coffeeButton.setLayoutParams(new RelativeLayout.LayoutParams(20,20));
@@ -601,4 +611,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onConnectionSuspended(int suspended){
 
     }
+
+
 }

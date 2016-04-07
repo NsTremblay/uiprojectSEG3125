@@ -11,4 +11,5 @@
     <string name="action_favorites">Favorites</string>
     <string name="button_search">Search</string>
     <string name="invalid_search">Invalid Search</string>
+    <string name="default_bean_text">Click on a bean!!!</string>
 </resources>
