@@ -1,12 +1,8 @@
 package ui.uottawa.com.compassapp;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.GeomagneticField;
@@ -19,8 +15,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.telecom.Connection;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,9 +25,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -39,12 +35,6 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.GoogleMap;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
         LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener , ConnectionCallbacks, OnConnectionFailedListener {
@@ -88,6 +78,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean favoritesEnabled = false;
     private boolean chainsEnabled = false;
     private float rating;
+    private Place[] coffeeShops;
+    Button coffeeButton;
+    RelativeLayout compassLayout;
+    private int counterForLog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +93,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         APIRequest = helperAPIRequest.getInstance(getApplicationContext());
         shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, String.valueOf(10));
 
-        compassView = (CompassView) findViewById(R.id.compass);
+        compassLayout = (RelativeLayout)findViewById(R.id.compassLayout);
+        compassLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
+
+        compassView = (CompassView) findViewById(R.id.compassView);
         searchImageButton = (ImageButton) findViewById(R.id.search_image_button);
         favoriteImageButton = (ImageButton) findViewById(R.id.favorite_image_button);
         chainImageButton = (ImageButton) findViewById(R.id.chain_image_button);
@@ -114,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ratingImageButton.setOnClickListener(this);
         searchButton.setOnClickListener(this);
         ratingBar.setOnSeekBarChangeListener(this);
-        ratingBar.setProgress((int)(Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING))*20));
+        ratingBar.setProgress((int) (Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING))*20));
 
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -126,7 +124,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
-        APIRequest.getCoffeeShopsLocation(false);
+
+        APIRequest = helperAPIRequest.getInstance(this.getBaseContext());
+        coffeeButton = new Button(this);
+
     }
 
     @Override
@@ -286,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD
@@ -316,8 +318,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
         if (id == R.id.action_favorites) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+            CharSequence options[] = new CharSequence[] {"Set as destination", "Add to favorites", "Open in Google Maps"};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Choose an option");
+            builder.setItems(options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch(which){
+                        case 0: // Set destination
+                            break;
+                        case 1: // Add to Favorites
+                            break;
+                        case 2: // Open in Google Maps
+                            break;
+                    }
+                }
+            });
+            builder.show();
+            /*Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);*/
             return true;
         }
 

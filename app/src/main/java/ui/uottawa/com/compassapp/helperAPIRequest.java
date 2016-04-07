@@ -51,7 +51,7 @@ public class helperAPIRequest {
         rating = Double.parseDouble(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING));
 
         //get the maximum search distance(radius) from shared prefs of the device and enter into the query. Multiply by 1000 to get meters from km stored in shared prefs
-        String distance = String.valueOf(Integer.valueOf(shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE)) * 100);
+        String distance = String.valueOf(Integer.valueOf(shPrefs.GetPreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE)) * 1000);
         String api_url = "";
 
         //handling the user search
@@ -103,9 +103,9 @@ public class helperAPIRequest {
                         shops[i] = currentPlace;
                         Log.d("PLACEINFORATING", currentPlace.toString());
                     }
-                    if (chain_flag.equals("1")) {//chain flag enabled, remove all the chain cafes/restaurant from the results.
+                    if (chain_flag.equals("0")) {//chain flag disabled, remove all the chain cafes/restaurant from the results.
                         //Dealing with chain cafes
-                        if (!currentPlace.getName().contains("Tim Hortons") || !currentPlace.getName().contains("Starbucks") || !currentPlace.getName().contains("McDonald's") || !currentPlace.getName().contains("Second Cup")) {
+                        if (!currentPlace.getName().equals("Tim Hortons") || !currentPlace.getName().equals("Starbucks") || !currentPlace.getName().equals("McDonald's") || !currentPlace.getName().equals("Second Cup")) {
                             shops[i] = currentPlace;
                             Log.d("PLACEINFOCHAIN", currentPlace.toString());
                         }

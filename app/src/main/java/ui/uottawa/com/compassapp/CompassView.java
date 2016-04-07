@@ -17,9 +17,15 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.location.Location;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -40,13 +46,16 @@ public class CompassView extends View {
     private helperAPIRequest APIRequest;
     private Activity activity;
     private Location currentLocation;
-
-    private ArrayList<android.graphics.Rect> coffeeShopsCircles;
+    private ArrayList<Button> coffeeButtons;
+    private RelativeLayout parent;
 
     public CompassView(Context context) {
         super(context);
         activity = (Activity) context;
         initialize();
+
+        //put all of the views we need around the circle
+
     }
 
     public CompassView(Context context, AttributeSet attr) {
@@ -57,14 +66,15 @@ public class CompassView extends View {
 
     private void initialize() {
 
-
+        parent = (RelativeLayout) findViewById(R.id.compassLayout);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(3);
+        paint.setStrokeWidth(1);
         paint.setColor(Color.WHITE);
         paint.setTextSize(30);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         APIRequest = helperAPIRequest.getInstance(activity);
         coffeeShops = APIRequest.getShops();
+        coffeeButtons = new ArrayList<Button>();
 
     }
 
@@ -83,11 +93,12 @@ public class CompassView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         coffeeShops = APIRequest.getShops();
+        ViewGroup parentView = (ViewGroup)CompassView.this.getParent();
+
         int cxCompass = getMeasuredWidth() / 2;
         int cyCompass = getMeasuredHeight() / 2;
         float radiusCompass;
-        Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-        canvas.drawBitmap(bitmap, 0, 0, paint);
+
         if (cxCompass > cyCompass) {
             radiusCompass = (float) (cyCompass * 0.9);
         } else {
@@ -102,32 +113,75 @@ public class CompassView extends View {
         if (currentLocation != null) {
             //loop through all of the returned coffeeshops
             if (coffeeShops != null) {
-
                 //make the circles before Drawing them and store them
-                coffeeShopsCircles = new ArrayList<Rect>();
+                for (int i = 0; i < coffeeShops.length; i++) {
+                    if (coffeeShops[i] != null) {
+                      /*  Button tempCoffee = new Button(activity);
+                        int pow;
+                        if (coffeeShops[i].getRating() < 3) {
+                            pow = 4;
+                        } else {
+                            pow = 3;
+                        }
+                        tempCoffee.setLayoutParams(new LinearLayout.LayoutParams((int) Math.pow(coffeeShops[i].getRating(), pow), (int) Math.pow(coffeeShops[i].getRating(), pow
+                        )));
+                        tempCoffee.setBackgroundResource(R.drawable.round_button);
+                        tempCoffee.setGravity(RelativeLayout.CENTER_IN_PARENT);
+                        tempCoffee.setId(i);
+                        tempCoffee.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View v) {
+                                // Perform action on click
+                                Log.i("Button was clicked", "Clicked Button ");
+                            }
+                        });
+                        Log.i("Hey", "onSensorChanged: ");*/
 
-                for (Place coffeeShop : coffeeShops) {
-                    Location dest = new Location(coffeeShop.getName());
-                    dest.setLatitude(coffeeShop.getLatitude());
-                    dest.setLongitude(coffeeShop.getLongitude());
+                        //for (Place coffeeShop : coffeeShops) {
+                        Location dest = new Location(coffeeShops[i].getName());
+                        dest.setLatitude(coffeeShops[i].getLatitude());
+                        dest.setLongitude(coffeeShops[i].getLongitude());
 
-                    bearingLoc = currentLocation.bearingTo(dest);
-                    //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
-                    double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
+                        bearingLoc = currentLocation.bearingTo(dest);
+                        //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
+                        double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
 
-                    double x = Math.cos(angleRadians);
-                    double y = Math.sin(angleRadians);
-                    paint.setStrokeWidth(5);
+                        double x = Math.cos(angleRadians);
+                        double y = Math.sin(angleRadians);
+                        Button tempCoffee = new Button(activity);
+                        int pow;
+                        if (coffeeShops[i].getRating() < 3) {
+                            pow = 4;
+                        } else {
+                            pow = 3;
+                        }
+                        tempCoffee.setLayoutParams(new LinearLayout.LayoutParams((int) Math.pow(coffeeShops[i].getRating(), pow), (int) Math.pow(coffeeShops[i].getRating(), pow
+                        )));
+                        tempCoffee.setBackgroundResource(R.mipmap.ic_launcher);
+                        tempCoffee.setGravity(RelativeLayout.CENTER_IN_PARENT);
+                        tempCoffee.setId(i);
+                        tempCoffee.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View v) {
+                                // Perform action on click
+                                Log.i("Button was clicked", "Clicked Button ");
+                            }
+                        });
+                        coffeeButtons.add(tempCoffee);
 
-//                    coffeeShopsCircles.add(new Rect(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y)));
+                        if (i <= coffeeButtons.size()) {
+                            Button currentbutton = coffeeButtons.get(i);
+                            currentbutton.setTranslationX(cxCompass + (radiusCompass * (float) x) - currentbutton.getWidth() / 2);
+                            currentbutton.setTranslationY(cyCompass + (radiusCompass * (float) y) - currentbutton.getHeight() / 2);
+                            canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
+                            if(currentbutton.getTranslationX()!=0&&currentbutton.getTranslationY()!=0) {
+                                parentView.addView(tempCoffee);
+                            }
+                        }
 
-                    //TODO Draw a clickable object instead of only text
-                    canvas.drawCircle(cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), (float) Math.pow(coffeeShop.getRating().floatValue(), 3), paint);
-                    //canvas.drawText(coffeeShop.getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
+                    }
                 }
+            } else {
+                Toast.makeText(activity, "Acquiring GPS Position", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(activity, "Acquiring GPS Position", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -135,21 +189,4 @@ public class CompassView extends View {
         this.currentLocation = currentLocation;
     }
 
-    public class coffeeCircle {
-        int radius;
-        int centerX;
-        int centerY;
-
-        coffeeCircle(int centerX, int centerY, int radius) {
-            this.radius = radius;
-            this.centerX = centerX;
-            this.centerY = centerY;
-        }
-
-        @Override
-        public String toString() {
-            return "Circle[" + centerX + ", " + centerY + ", " + radius + "]";
-        }
-
-    }
 }
