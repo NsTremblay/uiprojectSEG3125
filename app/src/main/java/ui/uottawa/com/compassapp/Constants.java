@@ -10,6 +10,8 @@ public class Constants {
     public static final String SHPREF_MIN_RATING = "min_rating";
     public static final String SHPREF_LOCATION_LATITUDE = "loc_latitude";
     public static final String SHPREF_LOCATION_LONGITUDE = "loc_longitude";
+    public static final String SHPREF_DESTINATION_LATITUDE = "dest_latitude";
+    public static final String SHPREF_DESTINATION_LONGITUDE = "dest_longitude";
     public static final String SHPREF_USER_SEARCH_VALUE = "user_search_value";
     public static final String SHPREF_CHAIN_FLAG = "chain_flag";
 }

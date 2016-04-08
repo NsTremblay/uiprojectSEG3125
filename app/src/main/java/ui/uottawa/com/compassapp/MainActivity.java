@@ -318,26 +318,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
         if (id == R.id.action_favorites) {
-            CharSequence options[] = new CharSequence[] {"Set as destination", "Add to favorites", "Open in Google Maps"};
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Choose an option");
-            builder.setItems(options, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    switch(which){
-                        case 0: // Set destination
-                            break;
-                        case 1: // Add to Favorites
-                            break;
-                        case 2: // Open in Google Maps
-                            break;
-                    }
-                }
-            });
-            builder.show();
-            /*Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);*/
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
