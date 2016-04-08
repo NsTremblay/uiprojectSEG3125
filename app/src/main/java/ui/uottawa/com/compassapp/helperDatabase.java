@@ -51,8 +51,9 @@ public class helperDatabase extends SQLiteOpenHelper {
 
     // Common column names
     public static final String KEY_ROWID = "_id";
-    public static final String KEY_NAME = "_id";
-    public static final String KEY_COFFEE_ID = "_id";
+    public static final String KEY_NAME = "name";
+    public static final String KEY_COFFEE_ID = "coffee_id";
+    public static final String KEY_RATING = "rating";
 
 
     /**
@@ -66,6 +67,7 @@ public class helperDatabase extends SQLiteOpenHelper {
             + TABLE_FAVORITES + "(" +
             KEY_ROWID + " INTEGER PRIMARY KEY," +
             KEY_COFFEE_ID + " TEXT," +
+            KEY_RATING + " TEXT," +
             KEY_NAME + " TEXT" +
             ")";
 
@@ -224,6 +226,33 @@ public class helperDatabase extends SQLiteOpenHelper {
         long id = SQLiteDb.insert(TABLE_FAVORITES, null, initialValues);
         SQLiteDb.close();
         return id;
+    }
+
+    public Cursor getAllFavorites() {
+        SQLiteDatabase SQLiteDb = this.getReadableDatabase();
+
+        Cursor mCursor = SQLiteDb.query(TABLE_FAVORITES, new String[]{
+                KEY_ROWID,
+                KEY_NAME,
+                KEY_RATING,
+                KEY_COFFEE_ID}, null, null, null, null, null , null);
+
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+
+        // db read only, no need to close the sql db (but cursor will need to be closed)
+
+        return mCursor;
+    }
+
+    public boolean deleteFavorite(String coffee_id) {
+
+        SQLiteDatabase SQLiteDb = this.getWritableDatabase();
+        boolean deleted = SQLiteDb.delete(TABLE_FAVORITES, KEY_COFFEE_ID + "=" + coffee_id, null) > 0;
+        SQLiteDb.close();
+        return deleted;
+
     }
 }
 

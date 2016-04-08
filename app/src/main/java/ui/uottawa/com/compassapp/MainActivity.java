@@ -37,7 +37,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
-        LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener , ConnectionCallbacks, OnConnectionFailedListener {
+        LocationListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener, ConnectionCallbacks, OnConnectionFailedListener {
 
 
     public static final String FIXED = "FIXED";
@@ -60,18 +60,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // sensor gravity
     private Sensor sensorGravity;
     private Sensor sensorMagnetic;
-    private Location currentLocation;
+    private static Location currentLocation;
     private GeomagneticField geomagneticField;
     private double bearing = 0;
     private CompassView compassView;
     private LocationManager locationManager;
     private GoogleApiClient mGoogleApiClient;
     private ImageButton searchImageButton, favoriteImageButton, chainImageButton, ratingImageButton;
-    private helperPreferences shPrefs;
+    private static helperPreferences shPrefs;
     private helperAPIRequest APIRequest;
     private EditText searchBar;
     private Button searchButton;
     private TextView ratingTextView;
+    private static TextView distanceTextView;
     private SeekBar ratingBar;
     private boolean searchVisible = false;
     private boolean ratingBarVisible = false;
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         APIRequest = helperAPIRequest.getInstance(getApplicationContext());
         shPrefs.SavePreferences(Constants.SHPREF_MAX_SEARCH_DISTANCE, String.valueOf(10));
 
-        compassLayout = (RelativeLayout)findViewById(R.id.compassLayout);
+        compassLayout = (RelativeLayout) findViewById(R.id.compassLayout);
         compassLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
 
         compassView = (CompassView) findViewById(R.id.compassView);
@@ -105,14 +106,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         searchButton = (Button) findViewById(R.id.search_button);
         ratingBar = (SeekBar) findViewById(R.id.rating_bar);
         ratingTextView = (TextView) findViewById(R.id.rating_text_view);
-
+        distanceTextView = (TextView) findViewById(R.id.distance_textView);
+        distanceTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         searchImageButton.setOnClickListener(this);
         favoriteImageButton.setOnClickListener(this);
         chainImageButton.setOnClickListener(this);
         ratingImageButton.setOnClickListener(this);
         searchButton.setOnClickListener(this);
         ratingBar.setOnSeekBarChangeListener(this);
-        ratingBar.setProgress((int) (Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING))*20));
+        ratingBar.setProgress((int) (Float.parseFloat(shPrefs.GetPreferences(Constants.SHPREF_MIN_RATING)) * 20));
 
         // keep screen light on (wake lock light)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -209,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         currentLocation = location;
         compassView.setCurrentLocation(location);
-
+        updateDistanceTextView();
         // used to update location info on screen
 
         geomagneticField = new GeomagneticField(
@@ -318,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
         if (id == R.id.action_favorites) {
-            Intent intent = new Intent(this, SettingsActivity.class);
+            Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
             return true;
         }
@@ -359,11 +361,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (chainsEnabled) {
                 chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_disabled));
                 chainsEnabled = false;
-                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG,"0");
+                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG, "0");
             } else if (!chainsEnabled) {
                 chainImageButton.setImageDrawable(getResources().getDrawable(R.mipmap.chain_icon_enabled));
                 chainsEnabled = true;
-                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG,"1");
+                shPrefs.SavePreferences(Constants.SHPREF_CHAIN_FLAG, "1");
             }
             APIRequest.getCoffeeShopsLocation(false);
 
@@ -393,7 +395,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {}
+    public void onStartTrackingTouch(SeekBar seekBar) {
+    }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
@@ -413,12 +416,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result){
+    public void onConnectionFailed(ConnectionResult result) {
 
     }
 
     @Override
-    public void onConnectionSuspended(int suspended){
+    public void onConnectionSuspended(int suspended) {
 
+    }
+
+    public static void updateDistanceTextView() {
+        String dest_lat = shPrefs.GetPreferences(Constants.SHPREF_DESTINATION_LATITUDE);
+        String dest_lon = shPrefs.GetPreferences(Constants.SHPREF_DESTINATION_LONGITUDE);
+        if (dest_lat.equals("0") || dest_lon.equals("0")) {
+            distanceTextView.setText("No destination set");
+        } else {
+            float distance = getDistance(currentLocation.getLatitude(), currentLocation.getLatitude(), Double.valueOf(dest_lat), Double.valueOf(dest_lon));
+            distanceTextView.setText("Distance to destination:\n" + (int) distance + " m");
+        }
+    }
+
+    public static float getDistance(double latitude, double longitude, double dest_latitude, double dest_longitude) {
+
+        double earthRadius = 6371; //meters
+        double dLat = Math.toRadians(dest_latitude - latitude);
+        double dLng = Math.toRadians(dest_longitude - longitude);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(latitude)) * Math.cos(Math.toRadians(dest_latitude)) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        float dist = (float) (earthRadius * c);
+
+        return dist;
     }
 }

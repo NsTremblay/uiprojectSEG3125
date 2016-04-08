@@ -37,7 +37,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class CompassView extends View implements View.OnClickListener{
+public class CompassView extends View implements View.OnClickListener {
 
 
     private static final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -51,14 +51,13 @@ public class CompassView extends View implements View.OnClickListener{
     private Activity activity;
     private Location currentLocation;
     private ArrayList<Button> coffeeButtons;
-
+    private helperPreferences shPrefs;
+    private boolean first =true;
+    ViewGroup parentView;
     public CompassView(Context context) {
         super(context);
         activity = (Activity) context;
         initialize();
-
-        //put all of the views we need around the circle
-
     }
 
     public CompassView(Context context, AttributeSet attr) {
@@ -68,15 +67,16 @@ public class CompassView extends View implements View.OnClickListener{
     }
 
     private void initialize() {
-
+        shPrefs = new helperPreferences(activity);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(1);
         paint.setColor(Color.WHITE);
         paint.setTextSize(30);
+        paint.setTextAlign(Paint.Align.LEFT);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DARKEN));
         APIRequest = helperAPIRequest.getInstance(activity);
         coffeeShops = APIRequest.getShops();
-        coffeeButtons = new ArrayList<Button>();
+        coffeeButtons = new ArrayList<>();
 
     }
 
@@ -94,8 +94,11 @@ public class CompassView extends View implements View.OnClickListener{
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if(first) {
+            parentView = (ViewGroup) CompassView.this.getParent();
+            first = false;
+        }
         coffeeShops = APIRequest.getShops();
-        ViewGroup parentView = (ViewGroup)CompassView.this.getParent();
 
         int cxCompass = getMeasuredWidth() / 2;
         int cyCompass = getMeasuredHeight() / 2;
@@ -106,7 +109,6 @@ public class CompassView extends View implements View.OnClickListener{
         } else {
             radiusCompass = (float) (cxCompass * 0.9);
         }
-        //canvas.drawCircle(cxCompass, cyCompass, radiusCompass, paint);
 
         // calculate rotation angle
         int rotation = (int) (360 - bearing);
@@ -116,6 +118,7 @@ public class CompassView extends View implements View.OnClickListener{
             //loop through all of the returned coffeeshops
             if (coffeeShops != null) {
                 //make the circles before Drawing them and store them
+                Button tempCoffee = null;
                 for (int i = 0; i < coffeeShops.length; i++) {
                     if (coffeeShops[i] != null) {
 
@@ -124,12 +127,11 @@ public class CompassView extends View implements View.OnClickListener{
                         dest.setLongitude(coffeeShops[i].getLongitude());
 
                         bearingLoc = currentLocation.bearingTo(dest);
-                        //Log.d("bearingLoc1:", String.valueOf(bearingLoc));
                         double angleRadians = Math.toRadians(bearingLoc) + Math.toRadians(rotation - 90);
 
                         double x = Math.cos(angleRadians);
                         double y = Math.sin(angleRadians);
-                        Button tempCoffee = new Button(activity);
+                        tempCoffee = new Button(activity);
                         int pow;
                         if (coffeeShops[i].getRating() < 3) {
                             pow = 4;
@@ -138,34 +140,39 @@ public class CompassView extends View implements View.OnClickListener{
                         }
                         tempCoffee.setLayoutParams(new LinearLayout.LayoutParams((int) Math.pow(coffeeShops[i].getRating(), pow), (int) Math.pow(coffeeShops[i].getRating(), pow
                         )));
-                        tempCoffee.setBackgroundResource(R.mipmap.ic_launcher);
+                        if (shPrefs.GetPreferences(Constants.SHPREF_DEST_COFFEE_ID).equals(coffeeShops[i].getId())) {
+                            tempCoffee.setBackgroundResource(R.mipmap.coffee_bean_icon);
+                        } else {
+                            if (coffeeShops[i].getIcon().equals("https://maps.gstatic.com/mapfiles/place_api/icons/cafe-71.png") || coffeeShops[i].getIcon().equals("https://maps.gstatic.com/mapfiles/place_api/icons/shopping-71.png")) {
+                                tempCoffee.setBackgroundResource(R.mipmap.cafe_icon);
+                            }
+                            if (coffeeShops[i].getIcon().equals("https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png")) {
+                                tempCoffee.setBackgroundResource(R.mipmap.restaurant_icon);
+                            }
+                        }
+
                         tempCoffee.setGravity(RelativeLayout.CENTER_IN_PARENT);
                         tempCoffee.setId(i);
                         tempCoffee.setOnClickListener(this);
                         coffeeButtons.add(tempCoffee);
-
-                        if (i <= coffeeButtons.size()) {
-                            coffeeButtons.get(i).setX(cxCompass + (radiusCompass * (float) x) - coffeeButtons.get(i).getWidth() / 2);
-                            coffeeButtons.get(i).setY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
-                            canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x), cyCompass + (radiusCompass * (float) y), paint);
-                            if(coffeeButtons.get(i).getX()!=0&&coffeeButtons.get(i).getY()!=0) {
-                                parentView.addView(tempCoffee);
-                            }
+                        if(i<coffeeButtons.size()) {
+                            coffeeButtons.get(i).setTranslationX(cxCompass + (radiusCompass * (float) x) - coffeeButtons.get(i).getWidth() / 2);
+                            coffeeButtons.get(i).setTranslationY(cyCompass + (radiusCompass * (float) y) - coffeeButtons.get(i).getHeight() / 2);
+                            canvas.drawText(coffeeShops[i].getName(), cxCompass + (radiusCompass * (float) x) - 60, cyCompass + (radiusCompass * (float) y) + 60, paint);
+                            parentView.addView(tempCoffee);
                         }
-
+                        tempCoffee = null;
                     }
                 }
             }
         }
+
     }
 
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
     }
 
-    public float getDestinationDistance() {
-        return this.distance;
-    }
     @Override
     public void onClick(View v) {
         DialogFragment optionsDialog = new DialogClickOptions();
@@ -175,20 +182,9 @@ public class CompassView extends View implements View.OnClickListener{
         info.putString("name", coffeeShops[v.getId()].getName());
         info.putString("lon", String.valueOf(coffeeShops[v.getId()].getLongitude()));
         info.putString("lat", String.valueOf(coffeeShops[v.getId()].getLatitude()));
+        info.putString("rating", String.valueOf(coffeeShops[v.getId()].getRating()));
         optionsDialog.setArguments(info);
     }
 
-    public float getDistance(double latitude, double longitude,double dest_latitude, double dest_longitude){
 
-        double earthRadius = 6371000; //meters
-        double dLat = Math.toRadians(latitude - dest_latitude);
-        double dLng = Math.toRadians(longitude -  dest_longitude);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(Math.toRadians(dest_latitude)) * Math.cos(Math.toRadians(dest_longitude)) *
-                        Math.sin(dLng/2) * Math.sin(dLng/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        float dist =  (float)(earthRadius * c);
-
-        return dist;
-    }
 }

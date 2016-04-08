@@ -32,6 +32,7 @@ public class DialogClickOptions extends DialogFragment {
     private String lon = "";
     private String lat = "";
     private String name = "";
+    private String rating = "";
 
     CharSequence options[] = new CharSequence[]{"Set as destination", "Add to favorites", "Open in Google Maps"};
 
@@ -47,6 +48,7 @@ public class DialogClickOptions extends DialogFragment {
             lon = fromBundle.getString("lon");
             lat = fromBundle.getString("lat");
             name = fromBundle.getString("name");
+            rating = fromBundle.getString("rating");
         }
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -60,6 +62,9 @@ public class DialogClickOptions extends DialogFragment {
                     case 0:
                         sharedPrefs.SavePreferences(Constants.SHPREF_DESTINATION_LONGITUDE, lon);
                         sharedPrefs.SavePreferences(Constants.SHPREF_DESTINATION_LATITUDE, lat);
+                        sharedPrefs.SavePreferences(Constants.SHPREF_DEST_COFFEE_ID, id);
+
+                        MainActivity.updateDistanceTextView();
                         break;
                     case 1:
                         db.addFavorite(id, name);
@@ -83,5 +88,7 @@ public class DialogClickOptions extends DialogFragment {
         // Create the AlertDialog object and return it
         return builder.create();
     }
+
+
 }
 

@@ -26,6 +26,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="Settings"
             android:theme="@style/SettingsActivityTheme" />
+        <activity
+            android:name=".FavoritesActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="Favorites"
+            android:theme="@style/AppTheme" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyASnlCMNHORqmbF8-V6GV2WSklHql4ZImo"/>

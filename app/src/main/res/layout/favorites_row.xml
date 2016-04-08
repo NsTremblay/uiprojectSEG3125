@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <TextView
+        android:id="@+id/fav_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingLeft="5dp"
+        android:text="#"
+        android:gravity="center_vertical"
+        />
+    <TextView
+        android:id="@+id/rating_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_below="@+id/fav_name"
+        android:layout_alignLeft="@+id/fav_name"
+        android:textSize="24sp"
+        android:paddingLeft="4dp"
+        android:text="Rating"
+        android:gravity="center_vertical"
+        />
+
+
+    <Button
+        android:id="@+id/delete_fav"
+        android:layout_width="65dp"
+        android:layout_alignParentRight="true"
+        android:layout_height="40dp"
+        android:textSize="18sp"
+        android:background="#555555"
+        android:paddingLeft="15dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:textColor="#EEEEEE"
+        android:drawableLeft="@android:drawable/ic_menu_delete"
+        android:textStyle="bold"
+        android:gravity="center_vertical"
+
+        android:layout_marginLeft="20dp" />
+
+    <TextView
+        android:id="@+id/fav_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_toRightOf="@+id/rating_label"
+        android:layout_alignBaseline="@+id/rating_label"
+        android:textSize="20sp"
+        android:paddingLeft="4dp"
+        android:gravity="center_vertical"
+        />
+
+</RelativeLayout>

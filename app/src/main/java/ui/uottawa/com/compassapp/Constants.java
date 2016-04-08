@@ -14,4 +14,5 @@ public class Constants {
     public static final String SHPREF_DESTINATION_LONGITUDE = "dest_longitude";
     public static final String SHPREF_USER_SEARCH_VALUE = "user_search_value";
     public static final String SHPREF_CHAIN_FLAG = "chain_flag";
+    public static final String SHPREF_DEST_COFFEE_ID = "chain_flag";
 }
